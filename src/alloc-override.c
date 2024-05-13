@@ -188,7 +188,7 @@ typedef void* mi_nothrow_t;
   void* operator new[](std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept { return mi_new_aligned_nothrow(n, static_cast<size_t>(al)); }
   #endif
 
-#elif (defined(__GNUC__) || defined(__clang__))
+#elif ((defined(__GNUC__) || defined(__clang__))) && !defined(MI_MUSL_BUILTIN)
   // ------------------------------------------------------
   // Override by defining the mangled C++ names of the operators (as
   // used by GCC and CLang).
