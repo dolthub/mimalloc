@@ -255,6 +255,14 @@ static inline mi_threadid_t _mi_prim_thread_id(void) mi_attr_noexcept {
   #endif
 }
 
+#elif defined(MI_MUSL_BUILTIN)
+
+#include "pthread_arch.h"
+
+static inline mi_threadid_t _mi_prim_thread_id(void) mi_attr_noexcept {
+  return __get_tp();
+}
+
 #else
 
 // otherwise use portable C, taking the address of a thread local variable (this is still very fast on most platforms).
