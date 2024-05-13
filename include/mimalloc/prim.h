@@ -354,6 +354,14 @@ static inline mi_heap_t* mi_prim_get_default_heap(void) {
   return (mi_unlikely(heap == NULL) ? (mi_heap_t*)&_mi_heap_empty : heap);
 }
 
+#elif defined(MI_MUSL_BUILTIN)
+
+extern void** __mimalloc_default_heap_location(void);
+
+static inline mi_heap_t* mi_prim_get_default_heap(void) {
+  return (mi_heap_t*)(*__mimalloc_default_heap_location());
+}
+
 #else // default using a thread local variable; used on most platforms.
 
 static inline mi_heap_t* mi_prim_get_default_heap(void) {
