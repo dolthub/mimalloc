@@ -703,9 +703,17 @@ static void mi_cdecl mi_process_done(void) {
   }
   static bool mi_initialized = _mi_process_init();
 
-#elif defined(__GNUC__) || defined(__clang__)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(MI_MUSL_BUILTIN)
   // GCC,Clang: use the constructor attribute
   static void __attribute__((constructor)) _mi_process_init(void) {
+    mi_process_load();
+  }
+
+#elif defined(MI_MUSL_BUILTIN)
+
+// MUSL libc is patched to call _mi_process_init() in _start or from the dynamic linker.
+// Thus, this symbol needs to be visible in the object file / non-static.
+  void _mi_process_init(void) {
     mi_process_load();
   }
 
