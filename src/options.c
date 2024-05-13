@@ -276,6 +276,9 @@ static _Atomic(size_t) warning_count; // = 0;  // when >= max_warning_count stop
 // variables on demand. This is why we use a _mi_preloading test on such
 // platforms. However, C code generator may move the initial thread local address
 // load before the `if` and we therefore split it out in a separate funcion.
+
+#if !defined(MI_MUSL_BUILTIN)
+
 static mi_decl_thread bool recurse = false;
 
 static mi_decl_noinline bool mi_recurse_enter_prim(void) {
@@ -301,6 +304,30 @@ static void mi_recurse_exit(void) {
   #endif
   mi_recurse_exit_prim();
 }
+
+#else
+
+bool *__mimalloc_recurse_location(void);
+
+static mi_decl_noinline bool mi_recurse_enter_prim(void) {
+  if (*__mimalloc_recurse_location()) return false;
+  *__mimalloc_recurse_location() = true;
+  return true;
+}
+
+static mi_decl_noinline void mi_recurse_exit_prim(void) {
+  *__mimalloc_recurse_location() = false;
+}
+
+static bool mi_recurse_enter(void) {
+  return mi_recurse_enter_prim();
+}
+
+static void mi_recurse_exit(void) {
+  mi_recurse_exit_prim();
+}
+
+#endif
 
 void _mi_fputs(mi_output_fun* out, void* arg, const char* prefix, const char* message) {
   if (out==NULL || (void*)out==(void*)stdout || (void*)out==(void*)stderr) { // TODO: use mi_out_stderr for stderr?
